@@ -1,7 +1,23 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const knex = require('knex') 
 
+const db = knex ({
+    client: 'pg',
+    connection: {
+      host : '127.0.0.1',
+      user : 'postgres',
+      password : 'krejzole33',
+      database : 'annualplanner'
+    }
+  });
+
+db.select('*').from('users').then(data => {
+
+console.log(data);
+
+})
 
 const app = express();
 
@@ -52,7 +68,6 @@ app.get('/', (req, res) => {
 
 app.post('/signin', (req, res) => {
 
-//WHEN SIGNED IN - UPDATE
 
     if (req.body.email === database.users[0].email && req.body.password === database.users[0].password)
 
@@ -73,6 +88,32 @@ app.post('/register', (req, res) => {
 
     const {email, name, password} = req.body;
 
+    db('users')
+    .returning('*')
+    .insert({
+
+    name: name,
+    email: email,
+    entries: []
+    })
+    
+    .then(user=> {
+
+        res.json(user[0]);
+    })
+
+    .catch(err => res.status(404).json('Unable to register'))
+
+})
+
+
+
+//POST ROUTE FOR REGISTER
+/*
+app.post('/register', (req, res) => {
+
+    const {email, name, password} = req.body;
+
     database.users.push(
 
         {
@@ -89,8 +130,67 @@ app.post('/register', (req, res) => {
 
 })
 
-//ENTRIES LATER MAINARRAY
+*/
 
+//UPDATE MAIN ARRAY (SUBMIT AND SAVE AND CLOSE)
+
+app.post('/todos', (req, res) => {
+
+    const {id} = req.body; //problem
+    
+    let found = false;
+
+db.where('id', '=', id)
+.update( {
+
+entries: req.body.entries
+
+
+})
+
+.returning('entries')
+.then()
+
+    /*
+    database.users.forEach(user => {
+
+    
+        if (user.id === id) {
+            found = true;
+            user.entries = req.body.entries
+            return res.json(user.entries);
+
+        } 
+
+    })
+
+    */
+
+        if(!found) {
+
+            res.status(404).json('not found');
+        }
+
+
+} )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//UPDATE MAIN ARRAY (SUBMIT AND SAVE AND CLOSE)
+/*
 app.post('/todos', (req, res) => {
 
     const {id} = req.body;
@@ -117,7 +217,7 @@ app.post('/todos', (req, res) => {
 
 } )
 
-
+*/
 //EXTRA
 
 app.get('/profile/:id', (req, res) => {
